@@ -43,7 +43,7 @@ exports.getSingleArticle = asyncHandler(async (req, res, next) => {
 
 exports.createArticle = asyncHandler(async (req, res, next) => {
   console.log('Request body:', req.body);
-  const { title, subtitle, date, category, author, content, image, favourite = false } = req.body;
+  const { title, description, date, categories, author, content, image, favourite = false } = req.body;
 
   try {
     if (!req.files || !req.files.image) {
@@ -58,11 +58,11 @@ exports.createArticle = asyncHandler(async (req, res, next) => {
 
     const article = new Articles({
       title,
-      subtitle,
+      description,
       content,
       image: uploadedPath.photoPath,  
       date,
-      category,
+      categories,
       author,
       favourite,
     });

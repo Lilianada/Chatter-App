@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const ErrorResponse = require("../utils/errorResponse.js");
 const Users = require("../models/userModels.js");
-const generateToken = require("../helpers/generateToken.js");
+const TokenService = require('../services/tokenService');
 
 exports.getAllUsers = asyncHandler(async (req, res, next) => {
   try {
@@ -154,44 +154,42 @@ exports.profileUpdate = asyncHandler(async (req, res, next) => {
 });
 
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
-    const { email } = req.body;
-  
-    try {
+  const { email } = req.body;
+
+  try {
       const user = await Users.findOne({ email });
       if (!user) {
-        return res.status(404).json({ message: "User not found with this email." });
+          return res.status(404).json({ message: "User not found with this email." });
       }
-  
-      // Generate a reset token
-      const resetToken = user.getResetPasswordToken();
-  
-      await user.save({ validateBeforeSave: false });
-  
-      // Create reset url to email to provided email
-      const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`;
-  
+
+      // Generate a reset token using the Token Service
+      const resetToken = await TokenService.generateToken('resetPassword');
+
+      // Create reset URL to email to the provided email
+      const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken.token}`;
+
       const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
-  
+
       try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Password reset token',
-          message
-        });
-  
-        res.status(200).json({ success: true, message: 'Email sent' });
+          await sendEmail({
+              email: user.email,
+              subject: 'Password reset token',
+              message
+          });
+
+          res.status(200).json({ success: true, message: 'Email sent' });
       } catch (err) {
-        console.log(err);
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-        await user.save({ validateBeforeSave: false });
-  
-        return next(new ErrorResponse('Email could not be sent', 500));
+          console.error(err);
+          user.resetPasswordToken = undefined;
+          user.resetPasswordExpire = undefined;
+          await user.save({ validateBeforeSave: false });
+
+          return next(new ErrorResponse('Email could not be sent', 500));
       }
-    } catch (err) {
+  } catch (err) {
       next(err);
-    }
-  });
+  }
+});
 
   exports.changePassword = asyncHandler(async (req, res, next) => {
     const { token } = req.params;
