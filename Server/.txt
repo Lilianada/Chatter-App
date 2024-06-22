@@ -1,0 +1,5 @@
+username= lilycodes
+pass= yLsLRQPlYDQSrWBr
+mongoVscode= mongodb+srv://lilycodes:yLsLRQPlYDQSrWBr@project01.wcdjos8.mongodb.net/
+mongoCompass= mongodb+srv://lilycodes:yLsLRQPlYDQSrWBr@project01.wcdjos8.mongodb.net/chatter_db
+ipAdd=156.146.59.45/32
